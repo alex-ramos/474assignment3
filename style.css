@@ -1,0 +1,65 @@
+svg {
+  background: #eee;
+}
+
+.sphere {
+  fill: #fff;
+}
+
+
+.land {
+  fill: #000;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+circle{
+  fill: red;
+}
+
+circle:hover{
+  fill: green;
+}
+
+h1{
+    text-align: center;
+    font-size: 36pt;
+    font-family: Arial, Verdana, sans-serif;
+}
+
+
+.bar rect {
+  fill: steelblue;
+}
+
+.bar text {
+  fill: black;
+  font: 10px sans-serif;
+}
+
+.tooltip{
+  background-color: white;
+  padding: 3px;
+  font: 10px sans-serif;
+  border:  blue 3px;
+}
+
+#filters{
+  position: fixed;
+  right: 100px;
+  top: 60px;
+  width: 200px;
+  font: 20px sans-serif;
+}
