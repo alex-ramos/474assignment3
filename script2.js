@@ -1,9 +1,10 @@
 /*
-Info 474 Assignment 3 pt A
-Alex Ramos
+  Alex Ramos
+  INFO 474
+  3/9/17
 */
 
-//variables for first svg to hold map
+//variables to build view
 var width = 960,
     height = 700;
 
@@ -11,30 +12,31 @@ var shapeFilter = "all";
 
 var yearBins = {};
 
-//variables to draw map of USA
+var b;
+
+var fDates;
+
 var projection = d3.geoAlbersUsa()
     .translate([(width / 2), 300])
     .scale(1275);
 
 var path = d3.geoPath(); // tell path generator to use albersUsa projection
 
-//svg to hold map
 var svg = d3.select("#map").append("svg")
     .attr("width", width)
     .attr("height", height);
-
-//zoom functionality on map
-var zoom = d3.zoom().scaleExtent([1, 8])
+var zoom = d3.zoom().scaleExtent([1, 10]).translateExtent([[0, 0], [width, height]]).extent([[0, 0], [width, height]])
     .on("zoom", zoomed);
 var g = svg.append("g");
 
 var tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
 
+var filtered; 
 
 svg
-    .call(zoom); 
+    .call(zoom);
 
-//Load JSON files and draw US map
+//Load US map data
 d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
   if (error) throw error;
 
@@ -52,7 +54,7 @@ d3.json("https://d3js.org/us-10m.v1.json", function(error, us) {
 
 var dataset; //the full dataset
 
-//Load csv of UFO sightings
+//Load UFO sighting data and create initial views
 d3.csv("usOyr.csv", function(UFO){
   UFO.forEach(function(d){
     d.datetime = new Date(d.datetime);
@@ -63,18 +65,16 @@ d3.csv("usOyr.csv", function(UFO){
   dataset = UFO;
   drawVis(dataset);
   createSlider(dataset);
-  yearBins = getYearBins(dataset);
-  //drawLine(yearBins);
-
+  filtered = dataset;
 });
 
-//Draw the UFO sightings on the map of the USA
-function drawMap(dataset) { 
+//Funcition to plot sightings on the Map
+function drawMap(dataset) { //draw the circiles initially and on each interaction with a control
     var circle =  g.selectAll("circle")
     .data(dataset);
 
     circle
-    .attr("r", 1.5)
+    .attr("r", 2)
     .attr("transform", function(d) {
     return "translate(" + projection([
         d.longitude,
@@ -84,9 +84,8 @@ function drawMap(dataset) {
 
     circle.exit().remove();
 
-    //circles are placed on the map where the sighting occures
-    //Tooltip on hover for the circles
-    circle.enter().append("circle") .attr("r", .75)
+    //Mousing over Sightings shows tooltip
+    circle.enter().append("circle").attr("r", 2)
     .attr("transform", function(d) {
     return "translate(" + projection([
         d.longitude,
@@ -107,18 +106,22 @@ function drawMap(dataset) {
     });
 }
 
+//Reset Vis to intial view
 function drawVis(dataset){
    drawMap(dataset);
    drawHist(dataset);
  }
 
-//Filter by the classified shape of the ufo
+
+//Filter Sighting by UFO shape
 function filterShape(myshape) {
+  filtered = dataset;
+  //add code to filter to mytype and rerender vis here
   if(myshape == "all"){
     shapeFilter = "all";
     return dataset;
   }else{
-    var ndata = dataset.filter(function(d){
+    var ndata = filtered.filter(function(d){
       shapeFilter = myshape;
       return d["shape"] == myshape;
     });
@@ -126,66 +129,72 @@ function filterShape(myshape) {
   }
 }
 
+//Filter data by dates on slider
+function filterDates(dates){
+  var gdata = filterShape(shapeFilter);
+  var ndata = gdata.filter(function(d){
+    return (new Date(d["datetime"]).getFullYear()) < dates[1] && (new Date(d["datetime"]).getFullYear()) > dates[0];
+  });
+    filtered = ndata;
+
+  drawVis(ndata);
+}
+
+//filter data by histogram bar
+function filterDuration(dur){
+  //var gdata = filterDates(fDates);
+  var ndata = filtered.filter(function(d){
+    return d["durationSec"] => dur.x0 && d["durationSec"] < dur.x1;
+  });
+  drawVis(ndata);
+}
+
+//create dropdown
 $(document).ready(function(){
   $("#dropdown").change(
   function(){
     drawVis(filterShape(this.value));
 });});
 
-
-//Filter between the dates set by the slider
-function filterDates(dates){
-  var dfil = filterShape(shapeFilter);
-  var ndata = dfil.filter(function(d){
-    return (new Date(d["datetime"]).getFullYear()) < dates[1] && (new Date(d["datetime"]).getFullYear()) > dates[0];
-  });
-  drawVis(ndata);
-}
-
-//function that creates the slider and places it into the HTML
+//create slider
 function createSlider(dataset) {
   $( "#date" ).slider({
     range: true,
     min: 1950,
     max: 2014, values: [ 1950, 2014 ],
     slide: function( event, ui ) {
-      $( "#dateamount" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ] ); filterDates(ui.values);
+      $( "#dateamount" ).val(ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+       fDates = ui.values;
+       filterDates(ui.values);
     } //end slide function
   }); //end slider
   $( "#dateamount" ).val((1950) +
       " - " + (2014));
 }
 
-//Function that handles the zoom interaction
+//function to handle zoom
 function zoomed() {
-  g.attr("transform", d3.event.transform);
-  console.log("event");
+    g.attr("transform", d3.event.transform);
+  console.log("zooom");
 }
 
-
-//Draw the Histogram view
 var formatCount = d3.format(",.0f");
 var bins;
 
-//Draw histogram showing distribution of duration of UFOs
+//draws histogram
 function drawHist(dataset){
-
-  //Could not figure out how the update without redrawing histogram, so must erase old one first
   d3.select("#hist").selectAll("svg").remove();
 
-  //SVG that holds the histogram
   var svg2 = d3.select("#hist").append("svg").attr("width", 1100).attr("height", 780);
-  var margin = {top: 10, right: 30, bottom: 30, left: 30}
+  var margin = {top: 30, right: 30, bottom: 50, left: 30}
   var g2 = svg2.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   var durations = getDurationColumn(dataset);
 
-  //set x scale
   var x = d3.scaleLinear()
     .domain([.01, 1000])
     .rangeRound([0, width]);
 
-  //Create bins of data 
   bins = d3.histogram()
     .thresholds(x.ticks(8))
     (durations);
@@ -194,7 +203,6 @@ function drawHist(dataset){
     .domain([0, d3.max(bins, function(d) { return d.length; })])
     .range([height, 0]);
 
-  //add bars to histogram and label
   var bar = g2.selectAll(".bar")
       .data(bins).enter().append("g")
         .attr("class", "bar")
@@ -202,8 +210,21 @@ function drawHist(dataset){
 
     bar.append("rect")
         .attr("x", 1)
-        .attr("width", x(bins[0].x1) - x(bins[0].x0) - 1)
-        .attr("height", function(d) { return (height - y(d.length)) - margin.bottom; });
+        .attr("width", 100)
+        .attr("height", function(d) { 
+          var h =  (height - y(d.length)) - margin.bottom;
+          if(h <=0 ){
+            return 0;
+          } 
+          return h;
+        })
+        .on("click", 
+          function(d){
+            var coords = d3.event.pageX;
+            b = Math.floor((coords-margin.left)/100);
+            filterDuration(bins[b]);
+          });
+
     bar.append("text")
         .attr("dy", "5px")
         .attr("y", -8)
@@ -211,21 +232,20 @@ function drawHist(dataset){
         .attr("text-anchor", "middle")
         .text(function(d) { return formatCount(d.length); });
 
-    //add x axis
     g2.append("g")
       .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + (height - 30) + ")")
+      .attr("transform", "translate(0," + (height - 50) + ")")
       .call(d3.axisBottom(x))     
         .append("text")
       .attr("transform",
             "translate(" + (550) + " ," + 
-                           (780 - margin.bottom + 20) + ")")
+                           (780 - margin.bottom) + ")")
         .style("text-anchor", "end")
         .text("Time (sec)");
     
 }
 
-//retrieve duration times from the dataset
+//Gets column of duration times from the dataset
 function getDurationColumn(dataset){
     var col = [];
     for(var i = 0; i < dataset.length; i++){
@@ -233,3 +253,9 @@ function getDurationColumn(dataset){
     }
     return col;
 }
+
+//clear filter functionality
+$( "#clear" ).click(function(){
+  filtered = dataset;
+  drawVis(dataset);
+});

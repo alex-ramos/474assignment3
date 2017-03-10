@@ -20,11 +20,17 @@
 <body>
 	<h1>UFO Sightings in the USA</h1>
 	<div id="map">
-		<h2>Interactive Map of UFOs in the USA</h2></div>
-	<div id="hist"><h2>Histogram of duration of UFO sighting in seconds</h2></div>
+		<h2>Map of Sightings</h2>
+		<p>Below is a map of reported UFO sightings form 2010 to 2014. You can zoom into the map by scrolling in and out, and also by clicking.
+			Hover over a specific sighting to learn more about it, including the date, location, and comments about the UFO left by the viewer.</p>
+	</div>
+	<div id="mapDesc"></div>
+	<div id="hist"><h2>Histogram of duration of UFO sightings</h2>
+		<p>This histogram shows the general distribution of the duration of UFO sightings. The length of sightings is in seconds. Click on a specific bar to see only the UFOs in that time-range on the map.</p>
+		</div>
 	<div id="filters">
 		<h3>Filter Data:</h3>
-		<label for="shape" id="myShape">UFO Shape:</label>
+		<label for="shape" id="myShape">Filter by UFO Shape:</label>
 		<select id="dropdown">
 			<option value="all">All</option>
 			<option value="changing">Changing</option>
@@ -56,12 +62,12 @@
 		</select>
 		<br>
 			<div id="date" class="slider-range"></div>
-			<label for="date">Date Range:</label>
+			<label for="date">Filter by Date Range of UFO sighting:</label>
 			<input type="text" id="dateamount" size=300 readonly style="border:0; color:#f6931f; font-weight:bold;">
-
-		<script src="script3.js"></script>
-
-
+			<h3>Clear filters before changing!</h3>
+			<button type="button" id="clear">Clear Filters</button>
 	</div>
+	<script src="script2.js"></script>
+
 </body>
 </html>

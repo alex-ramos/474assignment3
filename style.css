@@ -6,9 +6,20 @@ svg {
   fill: #fff;
 }
 
+#map p{
+  width: 960px;
+}
 
+#hist p{
+  width: 780px;
+}
 .land {
   fill: #000;
+}
+
+.states, .state-borders
+{
+  fill: #272727;
 }
 
 .boundary {
@@ -26,11 +37,14 @@ svg {
 }
 
 circle{
-  fill: red;
+  fill: green;
+  opacity: .5;
 }
 
 circle:hover{
-  fill: green;
+  fill: yellow;
+  opacity: 1;
+  r: 5;
 }
 
 h1{
