@@ -144,7 +144,7 @@ function filterDates(dates){
 function filterDuration(dur){
   //var gdata = filterDates(fDates);
   var ndata = filtered.filter(function(d){
-    return d["durationSec"] => dur.x0 && d["durationSec"] < dur.x1;
+    return d["durationSec"] > dur.x0 && d["durationSec"] < dur.x1;
   });
   drawVis(ndata);
 }
